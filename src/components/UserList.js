@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import tokenJwt from "../middleware/Jwt";
 import { useNavigate } from "react-router-dom";
 import refreshToken from "../middleware/RefreshToken";
+import Swal from "sweetalert2";
 
 const UserList = () => {
   const [users, setUser] = useState([]);
@@ -17,13 +18,34 @@ const UserList = () => {
 
   const getUsers = async () => {
     const response = await tokenJwt.get("http://localhost:5000/users");
+    console.log(response);
     setUser(response.data);
   };
 
-  const deleteUser = async (id) => {
+  const deleteUser = (id) => {
     try {
-      await tokenJwt.delete(`http://localhost:5000/users/${id}`);
-      getUsers();
+      Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          tokenJwt.delete(`http://localhost:5000/users/${id}`).then((res) => {
+            Swal.fire({
+              icon: "success",
+              title: "Mantap",
+              text: res.data.message,
+              showConfirmButton: false,
+              timer: 3000,
+            });
+            getUsers();
+          });
+        }
+      });
     } catch (error) {
       console.log(error);
     }
@@ -32,7 +54,7 @@ const UserList = () => {
   return (
     <div class="container">
       <div className="columns">
-        <div className="column is-half">
+        <div className="column">
           <Link to={"/add"} className="button is-warning mt-5">
             Tambah
           </Link>
@@ -43,6 +65,7 @@ const UserList = () => {
                 <th>Name</th>
                 <th>Email</th>
                 <th>Gender</th>
+                <th>Foto</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -53,6 +76,11 @@ const UserList = () => {
                   <td>{user.name}</td>
                   <td>{user.email}</td>
                   <td>{user.gender}</td>
+                  <td>
+                    <figure className="image is-square is-480x480">
+                      <img src={user.url} alt="" />
+                    </figure>
+                  </td>
                   <td>
                     <Link
                       to={`/edit/${user._id}`}

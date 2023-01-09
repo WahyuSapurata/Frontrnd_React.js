@@ -8,8 +8,10 @@ axiosJWT.interceptors.request.use(
     const currentDate = new Date();
     const token = sessionStorage.getItem("auth");
     const decoded = jwt_decode(token);
+    const name = decoded.name;
     const set_token = () => {
       sessionStorage.setItem("auth", token);
+      sessionStorage.setItem("name", name);
     };
     if (decoded.exp < currentDate.getTime()) {
       const response = await axios.get("http://localhost:5000/token", {
